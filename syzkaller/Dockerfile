@@ -12,26 +12,27 @@ RUN apt-get update && \
 
 RUN git clone --depth 1 https://github.com/torvalds/linux.git /kernel
 
-RUN ( cd /kernel      && \
-    make defconfig   && \
-    make kvmconfig   && \
-    echo -e "CONFIG_KCOV=y\nCONFIG_DEBUG_INFO=y\nCONFIG_KASAN=y\nCONFIG_KASAN_INLINE=y\nCONFIG_CONFIGFS_FS=y\nCONFIG_SECURITYFS=y\n" >> .config && \
-    make CC=/usr/bin/gcc oldconfig && \
-    make CC=/usr/bin/gcc -j4 && \
-    test -f /kernel/vmlinux && \
-    test -f /kernel/arch/x86/boot/bzImage )
-
 RUN mkdir -p /image && \
     ( cd /image && \
     wget https://raw.githubusercontent.com/google/syzkaller/master/tools/create-image.sh -O create-image.sh )
 
 RUN go get -u -d github.com/google/syzkaller/... 
 
+# Compile syzkaller
 RUN ( cd $HOME/go/src/github.com/google/syzkaller && NCORE=4 make )
+
+# Compile linux kernel
+# Docker handles echo so no "-e" needed
+RUN ( cd /kernel      && \
+    make defconfig   && \
+    make kvmconfig   && \
+    echo "CONFIG_KCOV=y\nCONFIG_DEBUG_INFO=y\nCONFIG_KASAN=y\nCONFIG_KASAN_INLINE=y\nCONFIG_CONFIGFS_FS=y\nCONFIG_SECURITYFS=y\n" >> .config && \
+    cp .config .config.bk && \
+    make CC=/usr/bin/gcc oldconfig && \
+    make CC=/usr/bin/gcc -j4 && \
+    test -f /kernel/vmlinux && \
+    test -f /kernel/arch/x86/boot/bzImage )
 
 WORKDIR /root/go/src/github.com/google/syzkaller
 
 COPY my.cfg .
-
-CMD ( cd /image && bash /image/create-image.sh ) && \
-    /bin/bash 
