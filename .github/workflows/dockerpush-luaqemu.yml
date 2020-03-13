@@ -1,4 +1,4 @@
-name: syzkaller-docker
+name: luaqemu-docker
 
 on:
   push:
@@ -6,18 +6,18 @@ on:
     branches:
       - master
     paths:
-      - syzkaller/**
-      - .github/workflows/dockerpush-syzkaller.yml
+      - luaqemu/**
+      - .github/workflows/dockerpush-luaqemu.yml
 
   # Run tests for any PRs.
   pull_request:
     paths:
-      - syzkaller/**
-      - .github/workflows/dockerpush-syzkaller.yml
+      - luaqemu/**
+      - .github/workflows/dockerpush-luaqemu.yml
         
 env:
   # TODO: Change variable to your image's name.
-  IMAGE_NAME: buszk/syzkaller-docker
+  IMAGE_NAME: buszk/luaqemu-docker
 
 jobs:
   # Push image to GitHub Package Registry.
@@ -34,13 +34,7 @@ jobs:
         run: echo '${{ secrets.DOCKERHUB_PASS }}' | docker login --username buszk --password-stdin
 
       - name: Build image
-        run: docker build syzkaller --tag image
-
-      - name: Run image
-        run: docker run --privileged --name intermediate image /bin/bash -c "cd /image && bash /image/create-image.sh"
-
-      - name: Commit image
-        run: docker commit --change "CMD bin/syz-manager --config my.cfg" intermediate final-image
+        run: docker build luaqemu --tag image
 
       - name: Push image
         run: |
@@ -55,5 +49,5 @@ jobs:
 
           echo VERSION=$VERSION
 
-          docker tag final-image $IMAGE_NAME:$VERSION
+          docker tag image $IMAGE_NAME:$VERSION
           docker push $IMAGE_NAME:$VERSION

@@ -1,4 +1,4 @@
-# Syzkaller [![](https://images.microbadger.com/badges/version/buszk/syzkaller-docker.svg)](https://microbadger.com/images/buszk/syzkaller-docker "Get your own version badge on microbadger.com") ![Docker](https://github.com/buszk/docker-files/workflows/Docker/badge.svg)
+# Syzkaller [![](https://images.microbadger.com/badges/version/buszk/syzkaller-docker.svg)](https://microbadger.com/images/buszk/syzkaller-docker "Get your own version badge on microbadger.com") ![Docker](https://github.com/buszk/docker-files/workflows/syzkaller-docker/badge.svg)
 
 ## Build Image
 You can build docker image for Syzkaller with our Dockerfile
