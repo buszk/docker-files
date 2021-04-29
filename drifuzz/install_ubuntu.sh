@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo apt-get update && \
-sudo apt-get install -y  git build-essential flex bison git debootstrap libz3-dev\
+sudo apt-get install -y  git build-essential flex bison git debootstrap \
                         libelf-dev libssl-dev bc vim sudo fakeroot ncurses-dev \
                         xz-utils protobuf-compiler python3-dev python3-pip \
                         libprotobuf-c-dev libprotoc-dev python3-protobuf g++-8 \
@@ -14,7 +14,6 @@ pip3 install sysv_ipc lz4 mmh3 psutil shortuuid
 # Install z3
 (git clone https://github.com/Z3Prover/z3.git ~/Workspace/git/z3 && \
     cd ~/Workspace/git/z3 && \
-    git log && \
     git checkout e63992c8bd99ce0fbc1c76575646387f8411c216 && \
     python scripts/mk_make.py && \
     cd build && \
