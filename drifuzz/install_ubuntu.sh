@@ -1,32 +1,32 @@
 #!/bin/bash
 sudo apt-get update && \
-sudo apt-get install -y  git build-essential flex bison git debootstrap \
+sudo apt-get install -y build-essential flex bison git debootstrap genisoimage \
                         libelf-dev libssl-dev bc vim sudo fakeroot ncurses-dev \
-                        xz-utils protobuf-compiler python3-dev python3-pip \
+                        xz-utils protobuf-compiler python3-dev python3-pip kmod \
                         libprotobuf-c-dev libprotoc-dev python3-protobuf g++-8 \
                         pkg-config libwiretap-dev libwireshark-dev wget curl \
-                        zip protobuf-c-compiler automake software-properties-common \
-                        kmod
+                        zip protobuf-c-compiler automake software-properties-common
 
-# Fuzzer dependencies
-pip3 install sysv_ipc lz4 mmh3 psutil shortuuid
+# Fuzzer and concolic dependencies
+pip3 install sysv_ipc lz4 mmh3 psutil shortuuid tempdir pexpect intervaltree
 
+NP=$(nproc)
 # Install z3
 (git clone https://github.com/Z3Prover/z3.git ~/Workspace/git/z3 && \
     cd ~/Workspace/git/z3 && \
     git checkout e63992c8bd99ce0fbc1c76575646387f8411c216 && \
     python scripts/mk_make.py && \
     cd build && \
-    make -j8 && \
+    make -j $NP && \
     sudo make install)
 
-# Install binutils
+# Install binutils (needs objdump-2.32)
 (cd ~ && \
     wget https://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.gz -O binutils-2.32.tar.gz && \
     tar xf binutils-2.32.tar.gz && \
     cd binutils-2.32 && \
     ./configure && \
-    make -j 8 && \
+    make -j $NP && \
     sudo make install)
 
 mkdir -p ~/Workspace/git/
@@ -34,7 +34,7 @@ mkdir -p ~/Workspace/git/
 # Build guest linux
 git clone --depth 1 https://github.com/buszk/Drifuzz.git ~/Workspace/git/Drifuzz
 (cd ~/Workspace/git/Drifuzz && \
-    ./compile.sh --build-linux)
+    ./compile.sh --build-linux -j $NP)
 
 # Build custom panda
 git clone --depth 1 https://github.com/buszk/panda.git ~/Workspace/git/panda
@@ -52,7 +52,14 @@ git clone --depth 1 https://github.com/buszk/panda.git ~/Workspace/git/panda
         --extra-cxxflags=-Wno-error=class-memaccess \
         --disable-werror \
         --python=python3 && \
-    make -j 8)
+    make -j $NP)
 
+# Build a boot image
 (cd ~/Workspace/git/Drifuzz && \
     ./compile.sh --build-image)
+
+# Prepare drifuzz-concolic
+git clone --depth 1 https://github.com/buszk/drifuzz-concolic.git ~/Workspace/git/drifuzz-concolic
+git clone --depth 1 https://github.com/buszk/drifuzz-model-result ~/Workspace/git/drifuzz-model-result
+cp -r ~/Workspace/git/drifuzz-model-result ~/Workspace/git/drifuzz-concolic/work
+rm -rf ~/Workspace/git/drifuzz-concolic/work/.git
