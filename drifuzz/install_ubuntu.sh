@@ -57,6 +57,12 @@ git clone --depth 1 https://github.com/buszk/panda.git ~/Workspace/git/panda
 # Build a boot image
 (cd ~/Workspace/git/Drifuzz && \
     ./compile.sh --build-image)
+git clone --depth 1 https://github.com/wkennington/linux-firmware.git ~/Workspace/git/linux-firmware
+(cd ~/Workspace/git/Drifuzz/image/chroot && \
+    mkdir -p lib/firmware && \
+    cp -r ~/Workspace/git/linux-firmware/* lib/firmware)
+(cd ~/Workspace/git/Drifuzz && \
+    ./compile.sh --build-image)
 
 # Prepare drifuzz-concolic
 git clone --depth 1 https://github.com/buszk/drifuzz-concolic.git ~/Workspace/git/drifuzz-concolic
